@@ -1,0 +1,29 @@
+Database Name: Libsys
+
+To create Student Table:
+
+create table students(id int unique primary key auto_increment,name varchar(255) not null,branch varchar(255) not null, roll_no int unique,email varchar(255) not null,mobile_no varchar(255) not null, PRN varchar(255) unique not null,penalty int , status enum('active','inactive') default 'inactive');
+
+
+To create Users Table:
+ 
+create table users(id int unique primary key auto_increment,name varchar(20) not null , email varchar(255) not null unique, mobile_no varchar(255) not null,password varchar(255) not null, status enum('active','inactive') default 'inactive');
+
+
+To create Books Table:
+
+ create table books(id int unique auto_increment primary key, book_id int unique, title varchar(255) unique not null, author varchar(255) not null, publication varchar(255)not null,ISBN int unique, price int not null default 0);
+
+
+To create issue_records Table:
+
+create table issue_records(id int auto_increment unique primary key, student_id int, book_id int, issue_date date, expected_return_date date, actual_return_date date, penalty int , status enum('issued','lost','due','returned'), foreign key(student_id) references students(id), foreign key (book_id) references books(id));
+
+TO alter student table:
+
+ALTER TABLE students MODIFY COLUMN status enum('active','inactive') DEFAULT 'inactive';
+ALTER TABLE students MODIFY COLUMN penalty INT DEFAULT 0;
+
+To alter users table:
+
+ALTER TABLE users MODIFY COLUMN status enum('active','inactive') DEFAULT 'inactive';
