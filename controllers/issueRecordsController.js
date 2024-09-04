@@ -65,8 +65,6 @@ exports.issueBook = (req, res) => {
     })
 }
 
-
-
 exports.returnBook = (req, res) => {
     let StudentId = req.body.student_id;
     let BookId = req.body.book_id;
@@ -163,8 +161,8 @@ exports.returnBook = (req, res) => {
                     })
                 }
             } else {
-                res.status(200).json({
-                    status: 1,
+                res.status(500).json({
+                    status: 0,
                     message: " This Book has been already returned...."
                 });
             }
@@ -210,6 +208,8 @@ exports.lostBook = (req, res) => {
     let BookId = req.body.book_id;
     let Bookcode = req.body.book_code;
 
+    console.log("bookid", BookId);
+
     // Database connection
     let con_lostBook = ConnectionRequest.Connector();
     const today = new Date();
@@ -241,7 +241,8 @@ exports.lostBook = (req, res) => {
                     } else {
                         if (result[0]) {
                             ExpectedReturndate = result[0].expected_return_date.toISOString().split('T')[0];
-                            // add penalty after book lost and delay
+
+                            // add penalty for book lost but informed after expected returned date
                             if (ExpectedReturndate < ActualReturnDate) { // calculate date and add penalty
                                 let date1 = moment(ExpectedReturndate);
                                 let date2 = moment(ActualReturnDate);
@@ -250,7 +251,7 @@ exports.lostBook = (req, res) => {
 
                                 console.log('Difference in days:', differenceInDays);
 
-                                let bookPenalty = differenceInDays * 5 + bookPrice;
+                                let bookPenalty = differenceInDays * 5 + bookPrice; // after expected date
 
                                 let sql = `UPDATE issue_records SET penalty=${bookPenalty}, actual_return_date='${ActualReturnDate}',status='lost' where book_id=${BookId} and student_id=${StudentId} and status='issued'`
                                 console.log("query", sql);
@@ -279,7 +280,7 @@ exports.lostBook = (req, res) => {
                                         })
                                     }
                                 })
-                            } else { // add penalty for book lost
+                            } else { // add penalty for book lost but informed before expected returned date
 
                                 let bookPenalty = bookPrice;
                                 let sql = `UPDATE issue_records SET penalty=${bookPenalty}, actual_return_date='${ActualReturnDate}',status='lost' where book_id=${BookId} and student_id=${StudentId} and status='issued' `
@@ -299,10 +300,23 @@ exports.lostBook = (req, res) => {
                                                     message: "error occured...."
                                                 });
                                             } else {
-                                                res.status(200).json({
-                                                    status: 1,
-                                                    message: ` Book has been returned successfully with ${bookPenalty} Penalty on '${ActualReturnDate}'....`
-                                                });
+                                                let sql = `UPDATE books SET status='lost' where id=${BookId} `
+                                                con_lostBook.query(sql1, function(err, result) {
+                                                    if (err) {
+                                                        res.status(500).json({
+                                                            status: 0,
+                                                            message: "error occured...."
+                                                        });
+                                                    } else {
+
+                                                        res.status(200).json({
+                                                            status: 1,
+                                                            message: ` Bookk has been returned successfully with ${bookPenalty} Penalty on '${ActualReturnDate}'....`
+                                                        });
+                                                    }
+
+
+                                                })
                                             }
                                         })
                                     }
@@ -310,8 +324,8 @@ exports.lostBook = (req, res) => {
                             }
 
                         } else {
-                            res.status(200).json({
-                                status: 1,
+                            res.status(500).json({
+                                status: 0,
                                 message: `Book is not available in queue `
                             });
 

@@ -1,4 +1,4 @@
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcrypt"); // Hashing User's password
 const ConnectionRequest = require("../services/DBConnection");
 const JWT = require("jsonwebtoken");
 const JWTConfig = require("../config/jwt-config");
@@ -17,7 +17,7 @@ exports.createUser = (req, res) => {
 
     con_createUser.query(select_sql, function(err, result) {
         if (result.length > 0) {
-            res.status(500).json({
+            res.status(400).json({
                 status: 0,
                 message: "user has been already registered with this Email ID....",
             });
