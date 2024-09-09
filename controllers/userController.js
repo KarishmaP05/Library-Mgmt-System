@@ -57,14 +57,12 @@ exports.loginUser = (req, res) => {
     let sql = `SELECT id ,password FROM users where email='${Email}'`
 
     con_loginUser.query(sql, function(err, result) {
-
         if (err) {
             res.status(502).json({
                 status: 0,
                 message: "error occured....",
-
-
             });
+            return;
         } else {
             if (result.length > 0) {
                 if (bcrypt.compareSync(Password, result[0].password)) {
@@ -86,17 +84,20 @@ exports.loginUser = (req, res) => {
                         message: "user Logged in Successfully",
                         token: userToken
                     })
+                    return;
                 } else {
                     res.status(500).json({
                         status: 0,
                         message: "Incorrect Password"
                     })
+                    return;
                 }
             } else {
                 res.status(501).json({
                     status: 0,
                     message: "User not registered with This email Id"
                 })
+                return;
             }
 
 

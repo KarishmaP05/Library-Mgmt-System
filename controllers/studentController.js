@@ -16,7 +16,7 @@ exports.addStudent = (req, res) => {
     con_addStudent.query(select_sql1, function(err, result) {
         if (result.length > 0) {
             console.log("email");
-            res.status(501).json({
+            res.status(400).json({
                 status: 0,
                 message: "Student is Already exist with this Email...."
             });
@@ -26,7 +26,7 @@ exports.addStudent = (req, res) => {
             con_addStudent.query(select_sql2, function(err, result) {
                 if (result.length > 0) {
                     console.log("rollno");
-                    res.status(502).json({
+                    res.status(400).json({
                         status: 0,
                         message: "Student is Already exist with this RollNo...."
                     });
@@ -37,7 +37,7 @@ exports.addStudent = (req, res) => {
                         console.log("result", result);
                         if (result.length > 0) {
                             console.log("prn");
-                            res.status(503).json({
+                            res.status(400).json({
                                 status: 0,
                                 message: "Student is Already Added...."
                             });
@@ -54,11 +54,19 @@ exports.addStudent = (req, res) => {
                                     })
                                     return;
                                 } else {
-                                    res.status(200).json({
-                                        status: 1,
-                                        message: "student has been added successfully"
-                                    })
-                                    return;
+                                    if (res.length > 0) {
+                                        res.status(200).json({
+                                            status: 1,
+                                            message: "student has been added successfully"
+                                        })
+                                        return;
+                                    } else {
+                                        res.status(501).json({
+                                            status: 0,
+                                            message: "failed to Add student"
+                                        })
+                                        return;
+                                    }
                                 }
                             })
                         }
@@ -67,14 +75,13 @@ exports.addStudent = (req, res) => {
             })
         }
     })
-
-
 }
 
-exports.deleteStudent = (req, res) => {
-    let PRN = req.body.PRN
+exports.inactiveStudent = (req, res) => {
+    let PRN = req.body.PRN;
+    let status = req.body.status;
     let con_deleteStudent = ConnectionRequest.Connector();
-    let sql = `DELETE  FROM students where PRN= ? `
+    let sql = `UPDATE students set status='${status}' where PRN=?`
 
     con_deleteStudent.query(sql, [PRN], function(err, result) {
         if (err) {
@@ -84,13 +91,22 @@ exports.deleteStudent = (req, res) => {
                 message: "Error occured",
                 error: err.sqlMessage
             })
+            return;
 
         } else {
-            res.status(200).json({
-                status: 1,
-                message: "student deleted Successfully",
-
-            })
+            if (res.length > 0) {
+                res.status(200).json({
+                    status: 1,
+                    message: `student get '${status}' Successfully`,
+                })
+                return;
+            } else {
+                res.status(501).json({
+                    status: 0,
+                    message: `Failed to '${status}' Student`,
+                })
+                return;
+            }
         }
 
     })
@@ -99,15 +115,15 @@ exports.deleteStudent = (req, res) => {
 exports.updateStudent = (req, res) => {
     let Name = req.body.name;
     let Branch = req.body.branch;
-    let RollNo = req.body.rollno;
+    // let RollNo = req.body.rollno;
     let Email = req.body.email;
     let MobileNo = req.body.mobileno;
     let PRN = req.body.prn;
 
     let con_updateStudent = ConnectionRequest.Connector();
     // let sql = `UPDATE students SET name='${Name}',branch='${Branch}',roll_no='${RollNo}',email='${Email}',mobile_no='${MobileNo}',PRN='${PRN}' where id='${id}'`
-    let sql = `UPDATE students SET name= ? , branch= ? , roll_no= ? , email=? , mobile_no= ?  where PRN=? `
-    con_updateStudent.query(sql, [Name, Branch, RollNo, Email, MobileNo, PRN], function(err, result) {
+    let sql = `UPDATE students SET name= ? , branch= ? , email=? , mobile_no= ?  where PRN=?' and status='active'`
+    con_updateStudent.query(sql, [Name, Branch, Email, MobileNo, PRN], function(err, result) {
         if (err) {
             console.log(err);
             res.status(500).json({
@@ -115,12 +131,23 @@ exports.updateStudent = (req, res) => {
                 message: "Error occured",
                 error: err.sqlMessage
             })
+            return;
         } else {
-            res.status(200).json({
-                status: 1,
-                message: "Student Information Updated Successfully",
-                data: result
-            })
+            if (res.length > 0) {
+                res.status(200).json({
+                    status: 1,
+                    message: "Student Information Updated Successfully",
+                    data: result
+                })
+                return;
+            } else {
+                res.status(501).json({
+                    status: 0,
+                    message: "Failed to Update Student Information",
+                    data: result
+                })
+                return;
+            }
         }
     })
 }
@@ -139,16 +166,24 @@ exports.displayStudent = (req, res) => {
                 message: "Error occured",
                 error: err.sqlMessage
             })
-
+            return;
         } else {
-            res.status(200).json({
-                status: 1,
-                message: "List of All students",
-                data: result
-            })
+            if (result.length > 0) {
+                res.status(200).json({
+                    status: 1,
+                    message: "List of All students",
+                    data: result
+                })
+                return;
+            } else {
+                res.status(501).json({
+                    status: 0,
+                    message: "students are not found",
+                    data: result
+                })
+                return;
+            }
 
         }
     })
-
-
 }
